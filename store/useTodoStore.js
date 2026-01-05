@@ -1,31 +1,67 @@
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  fetchTodosFromFirestore,
+  addTodoToFirestore,
+  deleteTodoFromFirestore,
+  updateTodoInFirestore,
+} from "../services/firestore";
 
-const STORAGE_KEY = "todos_store";
-
-export const useTodoStore = create((set) => ({
+export const useTodoStore = create((set, get) => ({
   // état global
   todos: [],
   loading: false,
   error: null,
 
-  // actions
-  addTodo: (todo) =>
-    set((state) => ({
-      todos: [...state.todos, todo],
-    })),
+  // Charger les todos depuis Firestore
+  loadTodos: async (uid) => {
+    if (!uid) return;
+    set({ loading: true, error: null });
+    try {
+      const todos = await fetchTodosFromFirestore(uid);
+      set({ todos, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
 
-  removeTodo: (id) =>
-    set((state) => ({
-      todos: state.todos.filter((t) => t.id !== id),
-    })),
+  // Ajouter un todo
+  addTodo: async (uid, todo) => {
+    if (!uid) return;
+    set({ loading: true, error: null });
+    try {
+      await addTodoToFirestore(uid, todo);
+      // Recharger les todos
+      await get().loadTodos(uid);
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
 
-  updateTodo: (id, updates) =>
-    set((state) => ({
-      todos: state.todos.map((todo) =>
-        todo.id === id ? { ...todo, ...updates } : todo
-      ),
-    })),
+  // Supprimer un todo
+  removeTodo: async (uid, id) => {
+    if (!uid) return;
+    set({ loading: true, error: null });
+    try {
+      await deleteTodoFromFirestore(uid, id);
+      // Recharger les todos
+      await get().loadTodos(uid);
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  // Mettre à jour un todo
+  updateTodo: async (uid, id, updates) => {
+    if (!uid) return;
+    set({ loading: true, error: null });
+    try {
+      await updateTodoInFirestore(uid, id, updates);
+      // Recharger les todos
+      await get().loadTodos(uid);
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
 
   setTodos: (todos) => set({ todos }),
 
@@ -34,27 +70,4 @@ export const useTodoStore = create((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error }),
-
-  // Persist todos to AsyncStorage
-  persistTodos: async (todos) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-    } catch (error) {
-      console.error("Error persisting todos:", error);
-    }
-  },
-
-  // Load todos from AsyncStorage
-  loadTodos: async () => {
-    try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
-      if (data) {
-        set({ todos: JSON.parse(data) });
-        return JSON.parse(data);
-      }
-    } catch (error) {
-      console.error("Error loading todos:", error);
-    }
-    return [];
-  },
 }));

@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import AppStack from "./AppStack";
 import ProfileScreen from "../screens/ProfileScreen";
+import NativeFeaturesScreen from "../screens/NativeFeaturesScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -11,6 +12,11 @@ export default function AppDrawer() {
         name="TachesTab" 
         component={AppStack} 
         options={{ title: "Tâches" }}
+      />
+      <Tab.Screen 
+        name="FonctionnalitésTab" 
+        component={NativeFeaturesScreen}
+        options={{ title: "Fonctionnalités" }}
       />
       <Tab.Screen 
         name="ProfilTab" 

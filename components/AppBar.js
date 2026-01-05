@@ -1,12 +1,19 @@
 import { useContext } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
 
-export default function AppBar({ title }) {
+export default function AppBar({ title, back }) {
   const { logout } = useContext(AuthContext);
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
+      {back && (
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Retour</Text>
+        </TouchableOpacity>
+      )}
       <Text style={styles.title}>{title}</Text>
       <TouchableOpacity onPress={logout} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Logout</Text>
@@ -29,6 +36,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "white",
+    flex: 1,
+    textAlign: "center",
+  },
+  backText: {
+    color: "white",
+    fontSize: 14,
   },
   logoutButton: {
     paddingHorizontal: 10,
